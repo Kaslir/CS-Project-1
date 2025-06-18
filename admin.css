@@ -1,0 +1,111 @@
+/* ========================
+   Admin Dashboard Styles
+   ======================== */
+
+/* Container for sidebar + main content */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #2f75bb;
+  color: #fff;
+  padding: 30px 20px;
+}
+.sidebar .logo {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 40px;
+}
+.sidebar .nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar .nav li {
+  margin-bottom: 20px;
+}
+.sidebar .nav li a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 16px;
+}
+.sidebar .nav li.active a,
+.sidebar .nav li a:hover {
+  color: #fff;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 40px;
+  background-color: #f8f9fa;
+}
+.main-content h1 {
+  margin-top: 0;
+  font-size: 28px;
+}
+
+/* Generic panel/card styling */
+.panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px 30px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+}
+.panel h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+}
+
+/* Recent Appointments List */
+.recent-appointments-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.recent-appointments-list li {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+.recent-appointments-list li:last-child {
+  border-bottom: none;
+}
+.avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+}
+.details {
+  flex: 1;
+}
+.details p {
+  margin: 0;
+  font-weight: 500;
+}
+.details small {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Status badges */
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.completed  { background-color: #4caf50; color: #fff; }
+.canceled   { background-color: #f44336; color: #fff; }
+.reschedule { background-color: #ff9800; color: #fff; }
