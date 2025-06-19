@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     header("Location: admin_dashboard.php");
                     break;
                 case 'Triage Nurse':
-                    header("Location: triage_nurse.php");
+                    header("Location: edit_triage.php");
                     break;
                 case 'Doctor':
                     header("Location: doctor_dashboard.php");
