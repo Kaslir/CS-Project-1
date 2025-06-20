@@ -143,7 +143,7 @@ unset($_SESSION['loginError']);
     </form>
 
     <div class="forgot">
-      Forgot Password? <a href="forgot_password.php">Click here</a>
+      Forgot Password? Contact An Administrator</a>
     </div>
   </div>
 </body>
