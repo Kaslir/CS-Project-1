@@ -4,11 +4,25 @@ require 'db_connect.php';
 $patient_id = isset($_GET['patient_id']) 
     ? intval($_GET['patient_id']) 
     : 0;
-if (!$patient_id) die("Invalid patient ID.");
+if (!$patient_id) {
+    die("Invalid patient ID.");
+}
 
-$sql    = "SELECT * FROM Patient WHERE patient_id = $patient_id";
+// explicitly select ID_Number and alias it to id_number
+$sql = "
+  SELECT 
+    patient_id,
+    name,
+    phone_number,
+    date_of_birth,
+    ID_Number AS id_number
+  FROM Patient
+  WHERE patient_id = $patient_id
+";
 $result = $conn->query($sql);
-if (!$result || $result->num_rows !== 1) die("Patient not found.");
+if (!$result || $result->num_rows !== 1) {
+    die("Patient not found.");
+}
 
 $patient = $result->fetch_assoc();
 ?>
@@ -42,13 +56,12 @@ $patient = $result->fetch_assoc();
       gap: 15px;
     }
     .profile-btn {
-  width:20%; 
-}
-.profile-box .profile-buttons {
-  flex-direction: row;    
-  gap: 8px;               
-}
-
+      width:20%; 
+    }
+    .profile-box .profile-buttons {
+      flex-direction: row;    
+      gap: 8px;               
+    }
   </style>
 </head>
 <body>
@@ -75,8 +88,8 @@ $patient = $result->fetch_assoc();
         <td><?= htmlspecialchars($patient['date_of_birth']) ?></td>
       </tr>
       <tr>
-        <th>Gender:</th>
-        <td><?= htmlspecialchars($patient['gender']) ?></td>
+        <th>ID Number:</th>
+        <td><?= htmlspecialchars($patient['id_number']) ?></td>
       </tr>
     </table>
 
