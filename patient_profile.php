@@ -1,5 +1,11 @@
 <?php
+// patient_profile.php
 require 'db_connect.php';
+
+// ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $patient_id = isset($_GET['patient_id']) 
     ? intval($_GET['patient_id']) 
@@ -8,7 +14,7 @@ if (!$patient_id) {
     die("Invalid patient ID.");
 }
 
-// explicitly select ID_Number and alias it to id_number
+// fetch profile including DOB and ID_Number
 $sql = "
   SELECT 
     patient_id,
@@ -25,6 +31,12 @@ if (!$result || $result->num_rows !== 1) {
 }
 
 $patient = $result->fetch_assoc();
+
+// compute age from date_of_birth
+$dob      = $patient['date_of_birth'];
+$dobObj   = new DateTime($dob);
+$todayObj = new DateTime();
+$age      = $dobObj->diff($todayObj)->y;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,15 +64,19 @@ $patient = $result->fetch_assoc();
     }
     .profile-buttons {
       display: flex;
-      flex-direction: column;
-      gap: 15px;
+      flex-direction: row;
+      gap: 8px;
     }
     .profile-btn {
-      width:20%; 
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #3498db;
+      color: #fff;
+      cursor: pointer;
     }
-    .profile-box .profile-buttons {
-      flex-direction: row;    
-      gap: 8px;               
+    .profile-btn:hover {
+      background: #2980b9;
     }
   </style>
 </head>
@@ -84,8 +100,8 @@ $patient = $result->fetch_assoc();
         <td><?= htmlspecialchars($patient['phone_number']) ?></td>
       </tr>
       <tr>
-        <th>Date of Birth:</th>
-        <td><?= htmlspecialchars($patient['date_of_birth']) ?></td>
+        <th>Age:</th>
+        <td><?= $age ?></td>
       </tr>
       <tr>
         <th>ID Number:</th>
