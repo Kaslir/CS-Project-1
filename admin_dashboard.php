@@ -10,7 +10,7 @@ if (empty($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Administrator')
     exit('Access denied');
 }
 
-$sql = "
+$recentSql = "
   SELECT 
     a.appointment_id,
     p.name         AS patient_name,
@@ -24,7 +24,20 @@ $sql = "
   ORDER BY a.created_at DESC
   LIMIT 4
 ";
-$recent = $conn->query($sql);
+$recent = $conn->query($recentSql);
+
+$statusSql = "
+  SELECT status, COUNT(*) AS cnt
+    FROM Appointment
+   GROUP BY status
+";
+$statusRes = $conn->query($statusSql);
+$statusLabels = [];
+$statusData   = [];
+while ($row = $statusRes->fetch_assoc()) {
+    $statusLabels[] = $row['status'];
+    $statusData[]   = $row['cnt'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,6 +67,14 @@ $recent = $conn->query($sql);
     .badge.completed { background:#2ecc71; color:#fff; }
     .badge.cancelled { background:#e74c3c; color:#fff; }
     .badge.missed    { background:#95a5a6; color:#fff; }
+
+    .health-report-panel {
+      padding: 20px;
+    }
+    #statusChart {
+      max-width: 600px;
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body class="dashboard-container">
@@ -72,7 +93,8 @@ $recent = $conn->query($sql);
     <h1>Dashboard</h1>
 
     <section class="panel health-report-panel">
-      <h2>Health Report</h2>
+      <h2>Appointment Status</h2>
+      <canvas id="statusChart"></canvas>
     </section>
 
     <section class="panel heart-rate-panel">
@@ -104,5 +126,25 @@ $recent = $conn->query($sql);
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: <?= json_encode($statusLabels) ?>,
+        datasets: [{
+          label: 'Number of Appointments',
+          data: <?= json_encode($statusData) ?>,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
