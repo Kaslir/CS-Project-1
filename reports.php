@@ -1,13 +1,10 @@
 <?php
-// reports.php
 require 'db_connect.php';
 
-// Ensure session is started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Only admins or supervisors can view reports
 if (!in_array($_SESSION['role_name'] ?? '', ['Administrator','Clinic Operations Supervisor'], true)) {
     header('HTTP/1.1 403 Forbidden');
     exit;
@@ -17,7 +14,6 @@ $today      = date('Y-m-d');
 $week_start = date('Y-m-d', strtotime('-6 days'));
 $month_start= date('Y-m-d', strtotime('-1 month'));
 
-// 1) Patient registrations
 $reg = $conn->query("
   SELECT 
     SUM(DATE(created_at)    = '$today')       AS today,
@@ -26,7 +22,6 @@ $reg = $conn->query("
   FROM Patient
 ")->fetch_assoc();
 
-// 2) Triage assessments
 $tri = $conn->query("
   SELECT 
     SUM(DATE(time)    = '$today')       AS today,
@@ -35,7 +30,6 @@ $tri = $conn->query("
   FROM Triage
 ")->fetch_assoc();
 
-// 3) Average real wait time (in minutes)
 $avgRow = $conn->query("
   SELECT 
     AVG(
@@ -51,14 +45,13 @@ $avgRow = $conn->query("
 ")->fetch_assoc();
 $avg_wait = round($avgRow['avg_wait'] ?? 0, 1);
 
-// 4) Appointment adherence (% showed up)
 $adRow = $conn->query("
   SELECT 
     SUM(status = 'Missed') AS missed,
     COUNT(*)               AS total
   FROM Appointment
- WHERE scheduled_date = '$today'
 ")->fetch_assoc();
+
 $adherence = $adRow['total']
            ? round((($adRow['total'] - $adRow['missed']) / $adRow['total']) * 100, 1)
            : 100;
