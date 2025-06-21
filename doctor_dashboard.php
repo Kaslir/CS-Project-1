@@ -1,21 +1,17 @@
 <?php
-// doctor_dashboard.php
 require 'db_connect.php';
 
-// Ensure session is started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Only doctors can view this page
-if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Doctor') {
+if (empty($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Doctor') {
     header('HTTP/1.1 403 Forbidden');
     exit;
 }
 
 $today = date('Y-m-d');
 
-// Fetch today's queue with scheduled and actual times
 $sql = "
   SELECT
     q.queue_id,
@@ -45,6 +41,8 @@ $result = $conn->query($sql);
     th, td { padding:8px; border:1px solid #ddd; text-align:left; }
     .small-button { padding:4px 8px; border:none; border-radius:4px; background:#3498db; color:#fff; cursor:pointer; }
     .small-button:hover { background:#2980b9; }
+    .header { display:flex; justify-content:space-between; align-items:center; }
+    .logout-btn { text-decoration:none; color:#e74c3c; }
   </style>
 </head>
 <body>
@@ -53,7 +51,7 @@ $result = $conn->query($sql);
     <a href="logout.php" class="logout-btn">Logout</a>
   </div>
 
-  <h2>Live Queue for <?= htmlspecialchars($today) ?></h2>
+  <h2>Queue</h2>
 
   <table>
     <thead>
@@ -69,13 +67,10 @@ $result = $conn->query($sql);
       <?php if ($result && $result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
           <?php
-            // Compute wait minutes
             $schedTs = strtotime("{$row['scheduled_date']} {$row['scheduled_time']}");
             if ($row['start_time']) {
-                // True wait
                 $waitMins = round((strtotime($row['start_time']) - $schedTs) / 60);
             } else {
-                // Ongoing wait
                 $waitMins = round((time() - $schedTs) / 60);
             }
           ?>
