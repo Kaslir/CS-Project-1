@@ -1,39 +1,62 @@
 <?php
+// create_appointment.php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require 'db_connect.php';
 
-$patient_id = isset($_GET['patient_id'])
-    ? intval($_GET['patient_id'])
-    : 0;
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Only receptionists can assign appointments
+if (empty($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Receptionist') {
+    header('HTTP/1.1 403 Forbidden');
+    exit('Access denied');
+}
+
+// Get the single doctor on file
+$docRes = $conn->query("
+  SELECT u.user_id
+    FROM `User` u
+    JOIN Role r ON u.role_id = r.role_id
+   WHERE r.role_name = 'Doctor'
+   LIMIT 1
+");
+if (!$docRes || $docRes->num_rows !== 1) {
+    die("No doctor configured in the system.");
+}
+$doctor = $docRes->fetch_assoc();
+$doctor_id = intval($doctor['user_id']);
+
+// Get patient_id from query string
+$patient_id = isset($_GET['patient_id']) ? intval($_GET['patient_id']) : 0;
 if (!$patient_id) {
     die("Invalid patient.");
 }
-
-$docRes = $conn->query("
-  SELECT u.user_id, u.name
-    FROM User u
-    JOIN Role r ON u.role_id = r.role_id
-   WHERE r.role_name = 'Doctor'
-");
-$doctors = $docRes->fetch_all(MYSQLI_ASSOC);
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $scheduled_date = $conn->real_escape_string($_POST['date']);
     $scheduled_time = $conn->real_escape_string($_POST['time']);
-    $category       = $conn->real_escape_string($_POST['category']);
-    $doctor_id      = intval($_POST['doctor_id']);
+    $category       = $conn->real_escape_string(trim($_POST['category']));
     $receptionist   = intval($_SESSION['user_id']);
 
-    $sql = "INSERT INTO Appointment 
-            (patient_id, scheduled_date, scheduled_time, buffer_time, category, status, doctor_id)
-            VALUES
-            ($patient_id, '$scheduled_date', '$scheduled_time', 5, '$category', 'Scheduled', $doctor_id)";
+    // Insert appointment
+    $sql = "
+      INSERT INTO Appointment
+        (patient_id, scheduled_date, scheduled_time, buffer_time, category, status, doctor_id)
+      VALUES
+        ($patient_id, '$scheduled_date', '$scheduled_time', 5, '$category', 'Scheduled', $doctor_id)
+    ";
     if (!$conn->query($sql)) {
         $error = $conn->error;
     } else {
         $appointment_id = $conn->insert_id;
 
-        $today = date('Y-m-d');
+        // Compute next queue position for today
+        $today  = date('Y-m-d');
         $posRes = $conn->query("
           SELECT COALESCE(MAX(position),0) + 1 AS next_pos
             FROM Queue q
@@ -42,10 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $position = intval($posRes->fetch_assoc()['next_pos']);
 
-        $sql2 = "INSERT INTO Queue
-                 (appointment_id, patient_id, status, position, paused, managed_by)
-                 VALUES
-                 ($appointment_id, $patient_id, 'Waiting', $position, FALSE, $receptionist)";
+        // Insert into queue
+        $sql2 = "
+          INSERT INTO Queue
+            (appointment_id, patient_id, status, position, paused, managed_by)
+          VALUES
+            ($appointment_id, $patient_id, 'Waiting', $position, FALSE, $receptionist)
+        ";
         if (!$conn->query($sql2)) {
             $error = $conn->error;
         } else {
@@ -63,18 +89,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+  <!-- full-width header, outside of the centering wrapper -->
   <div class="header">
     <h1>Clinic</h1>
     <a href="logout.php" class="logout-btn">Logout</a>
   </div>
 
+  <!-- only this wrapper is flex-centered -->
   <div class="login-page">
     <div class="login-box">
       <h2>Assign Appointment Details</h2>
 
       <?php if ($error): ?>
-        <p style="color: red;"><?= htmlspecialchars($error) ?></p>
+        <p style="color: red; text-align: center;"><?= htmlspecialchars($error) ?></p>
       <?php endif; ?>
 
       <form method="POST" action="">
@@ -103,16 +130,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           required 
         />
 
-        <label for="doctor_id">Doctor:</label>
-        <select name="doctor_id" id="doctor_id" required>
-          <option value="" disabled selected>Select a doctor</option>
-          <?php foreach ($doctors as $doc): ?>
-            <option value="<?= $doc['user_id'] ?>">
-              <?= htmlspecialchars($doc['name']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-
         <button type="submit">Submit</button>
       </form>
     </div>
@@ -139,6 +156,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     dateInput.value = dateInput.value || new Date().toISOString().split('T')[0];
     updateTimeMin();
   </script>
-
 </body>
 </html>
