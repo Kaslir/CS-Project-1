@@ -11,15 +11,14 @@ if (empty($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Doctor') {
 }
 
 $today = date('Y-m-d');
-
 $sql = "
   SELECT
     q.queue_id,
-    p.name            AS patient_name,
+    p.name              AS patient_name,
     a.scheduled_date,
     a.scheduled_time,
     a.start_time,
-    a.end_time,
+    q.created_at        AS queued_at,
     q.status
   FROM Queue q
   JOIN Appointment a ON q.appointment_id = a.appointment_id
@@ -37,12 +36,12 @@ $result = $conn->query($sql);
   <title>Doctor Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    table { width:100%; border-collapse:collapse; margin-top:16px; }
+    .header { display:flex; justify-content:space-between; align-items:center; }
+    .logout-btn { text-decoration:none; color:#e74c3c; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; font-family:Arial,sans-serif; }
     th, td { padding:8px; border:1px solid #ddd; text-align:left; }
     .small-button { padding:4px 8px; border:none; border-radius:4px; background:#3498db; color:#fff; cursor:pointer; }
     .small-button:hover { background:#2980b9; }
-    .header { display:flex; justify-content:space-between; align-items:center; }
-    .logout-btn { text-decoration:none; color:#e74c3c; }
   </style>
 </head>
 <body>
@@ -67,17 +66,18 @@ $result = $conn->query($sql);
       <?php if ($result && $result->num_rows > 0): ?>
         <?php while ($row = $result->fetch_assoc()): ?>
           <?php
-            $schedTs = strtotime("{$row['scheduled_date']} {$row['scheduled_time']}");
+            $queuedTs = strtotime($row['queued_at']);
             if ($row['start_time']) {
-                $waitMins = round((strtotime($row['start_time']) - $schedTs) / 60);
+                $endTs = strtotime($row['start_time']);
             } else {
-                $waitMins = round((time() - $schedTs) / 60);
+                $endTs = time();
             }
+            $waitMins = max(0, round(($endTs - $queuedTs) / 60));
           ?>
           <tr>
             <td><?= htmlspecialchars($row['patient_name']) ?></td>
             <td><?= date('h:i A', strtotime($row['scheduled_time'])) ?></td>
-            <td><?= max(0, $waitMins) ?></td>
+            <td><?= $waitMins ?></td>
             <td><?= htmlspecialchars($row['status']) ?></td>
             <td>
               <?php if ($row['status'] === 'Waiting'): ?>
