@@ -1,16 +1,13 @@
 <?php
-// doctor_action.php
 require 'db_connect.php';
 
-// Ensure session is started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Only doctors may perform these actions
-if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Doctor') {
+if (empty($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Doctor') {
     header('HTTP/1.1 403 Forbidden');
-    exit;
+    exit('Access denied');
 }
 
 $queue_id = intval($_POST['queue_id'] ?? 0);
@@ -21,7 +18,6 @@ if (!$queue_id || !in_array($action, ['start','end'], true)) {
     exit;
 }
 
-// Look up the corresponding appointment
 $row = $conn->query("
     SELECT appointment_id 
       FROM Queue 
@@ -37,7 +33,17 @@ if (!$row) {
 $aid = intval($row['appointment_id']);
 
 if ($action === 'start') {
-    // Record the actual consultation start
+    $resCount = $conn->query("
+      SELECT COUNT(*) AS cnt
+        FROM Queue
+       WHERE status = 'In Progress'
+    ")->fetch_assoc();
+    if ($resCount['cnt'] > 0) {
+        $_SESSION['error_msg'] = "Another consultation is already in progress.";
+        header("Location: doctor_dashboard.php");
+        exit;
+    }
+
     $conn->query("
       UPDATE Appointment
          SET start_time = NOW()
@@ -50,7 +56,6 @@ if ($action === 'start') {
     ");
 }
 elseif ($action === 'end') {
-    // Record the consultation end
     $conn->query("
       UPDATE Appointment
          SET end_time = NOW(),
@@ -63,7 +68,5 @@ elseif ($action === 'end') {
        WHERE queue_id = $queue_id
     ");
 }
-
-// Redirect back to the dashboard
 header("Location: doctor_dashboard.php");
 exit;
