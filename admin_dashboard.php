@@ -38,6 +38,28 @@ while ($row = $statusRes->fetch_assoc()) {
     $statusLabels[] = $row['status'];
     $statusData[]   = $row['cnt'];
 }
+
+$regSql = "
+  SELECT 
+    DATE(created_at) AS reg_date,
+    COUNT(*)         AS cnt
+  FROM Patient
+  WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+  GROUP BY reg_date
+  ORDER BY reg_date
+";
+$regRes = $conn->query($regSql);
+$regDates = [];
+$regCounts = [];
+for ($i = 6; $i >= 0; $i--) {
+    $d = date('Y-m-d', strtotime("-{$i} days"));
+    $regDates[] = $d;
+    $regCounts[$d] = 0;
+}
+while ($row = $regRes->fetch_assoc()) {
+    $regCounts[$row['reg_date']] = (int)$row['cnt'];
+}
+$regData = array_values($regCounts);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,39 +68,79 @@ while ($row = $statusRes->fetch_assoc()) {
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="admin.css">
   <style>
-    .recent-appointments-list { list-style:none; padding:0; margin:0; }
-    .recent-appointments-list li {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:12px 0;
-      border-bottom:1px solid #eee;
+    .dashboard-container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px;
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 20px 0;
     }
-    .recent-appointments-list li:last-child { border-bottom:none; }
-    .details p { margin:0; font-weight:500; }
-    .details small { color:#666; }
-    .badge {
-      padding:4px 8px;
-      border-radius:4px;
-      font-size:0.8rem;
-      text-transform:capitalize;
+    .sidebar .logo {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
     }
-    .badge.scheduled { background:#3498db; color:#fff; }
-    .badge.completed { background:#2ecc71; color:#fff; }
-    .badge.cancelled { background:#e74c3c; color:#fff; }
-    .badge.missed    { background:#95a5a6; color:#fff; }
-
-    .health-report-panel {
+    .sidebar .nav { list-style: none; padding: 0; }
+    .sidebar .nav li { margin: 0.5rem 0; }
+    .sidebar .nav li a {
+      color: #ecf0f1;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      display: block;
+    }
+    .sidebar .nav li.active a,
+    .sidebar .nav li a:hover {
+      background: #34495e;
+    }
+    .main-content {
+      flex: 1;
+      background: #ecf0f1;
       padding: 20px;
     }
-    #statusChart {
-      max-width: 600px;
-      margin: 0 auto;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+    .header h1 { margin: 0; }
+    .header a.logout-btn {
+      text-decoration: none;
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .panel h2 { margin-top: 0; }
+    .recent-appointments-list { list-style: none; padding: 0; margin: 0; }
+    .recent-appointments-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .recent-appointments-list li:last-child { border-bottom: none; }
+    .details p { margin: 0; font-weight: 500; }
+    .details small { color: #666; }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      text-transform: capitalize;
+    }
+    .badge.scheduled { background: #3498db; color: #fff; }
+    .badge.completed { background: #2ecc71; color: #fff; }
+    .badge.cancelled { background: #e74c3c; color: #fff; }
+    .badge.missed    { background: #95a5a6; color: #fff; }
+    canvas { max-width: 100%; display: block; margin: 0 auto; }
   </style>
 </head>
 <body class="dashboard-container">
-
   <aside class="sidebar">
     <div class="logo">Clinic</div>
     <ul class="nav">
@@ -90,18 +152,22 @@ while ($row = $statusRes->fetch_assoc()) {
   </aside>
 
   <main class="main-content">
-    <h1>Dashboard</h1>
+    <div class="header">
+      <h1>Dashboard</h1>
+      <a href="logout.php" class="logout-btn">Logout</a>
+    </div>
 
-    <section class="panel health-report-panel">
-      <h2>Appointment Status</h2>
+    <section class="panel">
+      <h2>Appointment Status Breakdown</h2>
       <canvas id="statusChart"></canvas>
     </section>
 
-    <section class="panel heart-rate-panel">
-      <h2>Heart Rate Diagram</h2>
+    <section class="panel">
+      <h2>New Patient Registrations (Last 7 Days)</h2>
+      <canvas id="regChart"></canvas>
     </section>
 
-    <section class="panel recent-appointments-panel">
+    <section class="panel">
       <h2>Recent Appointments</h2>
       <ul class="recent-appointments-list">
         <?php if ($recent && $recent->num_rows > 0): ?>
@@ -128,21 +194,35 @@ while ($row = $statusRes->fetch_assoc()) {
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const ctx = document.getElementById('statusChart').getContext('2d');
-    new Chart(ctx, {
+    new Chart(document.getElementById('statusChart'), {
       type: 'bar',
       data: {
         labels: <?= json_encode($statusLabels) ?>,
         datasets: [{
-          label: 'Number of Appointments',
+          label: 'Appointments',
           data: <?= json_encode($statusData) ?>,
         }]
       },
       options: {
         responsive: true,
-        scales: {
-          y: { beginAtZero: true }
-        }
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    new Chart(document.getElementById('regChart'), {
+      type: 'line',
+      data: {
+        labels: <?= json_encode($regDates) ?>,
+        datasets: [{
+          label: 'Registrations',
+          data: <?= json_encode($regData) ?>,
+          fill: false,
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
       }
     });
   </script>
