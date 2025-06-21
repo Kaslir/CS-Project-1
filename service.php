@@ -1,47 +1,46 @@
 <?php
-// service.php
 require_once 'db_connect.php';
 
-/**
- * Reorder today's queue according to triage levels:
- *  Emergency → High → Normal, then by original position
- */
 function reorderQueue() {
     global $conn;
     $today = date('Y-m-d');
 
-    // fetch queue entries for today that are not paused
     $sql = "
-      SELECT q.queue_id,
-             q.position,
-             COALESCE(
-               (SELECT triage_level 
-                  FROM Triage t 
-                 WHERE t.patient_id = q.patient_id 
-                   AND DATE(t.time)= '$today'
-                 ORDER BY t.time DESC LIMIT 1),
-               'Normal'
-             ) AS triage_level
-        FROM Queue q
-        JOIN Appointment a ON q.appointment_id = a.appointment_id
-       WHERE a.scheduled_date = '$today'
-         AND q.status = 'Waiting'
-         AND q.paused = FALSE
+      SELECT 
+        q.queue_id,
+        q.position AS old_pos,
+        a.scheduled_time,
+        COALESCE(
+          (SELECT triage_level 
+             FROM Triage t 
+            WHERE t.patient_id = q.patient_id 
+              AND DATE(t.time)= '$today'
+            ORDER BY t.time DESC LIMIT 1),
+          'Normal'
+        ) AS triage_level,
+        q.appointment_id
+      FROM Queue q
+      JOIN Appointment a ON q.appointment_id = a.appointment_id
+      WHERE a.scheduled_date = '$today'
+        AND q.status = 'Waiting'
     ";
     $res = $conn->query($sql);
-    $items = [];
+    if (!$res) return;
+
+    $items    = [];
+    $times    = []; 
     while ($row = $res->fetch_assoc()) {
-      // priority rank
-      $prio = $row['triage_level']==='Emergency' ? 1
-            : ($row['triage_level']==='High'      ? 2 : 3);
+      $prio = ($row['triage_level']==='Emergency' ? 1
+             : ($row['triage_level']==='High'      ? 2 : 3));
       $items[] = [
-        'id'       => (int)$row['queue_id'],
-        'prio'     => $prio,
-        'old_pos'  => (int)$row['position']
+        'queue_id'      => (int)$row['queue_id'],
+        'old_pos'       => (int)$row['old_pos'],
+        'prio'          => $prio,
+        'appointment_id'=> (int)$row['appointment_id'],
       ];
+      $times[(int)$row['old_pos']] = $row['scheduled_time'];
     }
 
-    // sort by triage, then by old position
     usort($items, function($a, $b){
       if ($a['prio'] !== $b['prio']) {
         return $a['prio'] - $b['prio'];
@@ -49,18 +48,29 @@ function reorderQueue() {
       return $a['old_pos'] - $b['old_pos'];
     });
 
-    // write back new positions
-    foreach ($items as $i => $it) {
-      $newPos = $i + 1;
-      $conn->query("UPDATE Queue 
-                      SET position = $newPos 
-                    WHERE queue_id  = {$it['id']}");
+    ksort($times);
+    $slots = array_values($times); 
+
+    foreach ($items as $index => $it) {
+      $newPos   = $index + 1;
+      $newTime  = $slots[$index] ?? $slots[count($slots)-1];
+      $qid      = $it['queue_id'];
+      $aid      = $it['appointment_id'];
+
+      $conn->query("
+        UPDATE Queue
+           SET position = $newPos
+         WHERE queue_id = $qid
+      ");
+
+      $conn->query("
+        UPDATE Appointment
+           SET scheduled_time = '$newTime'
+         WHERE appointment_id = $aid
+      ");
     }
 }
 
-/**
- * Estimate wait time in minutes (20min per position)
- */
 function estimateWaitTime($pos) {
     return $pos * 20;
 }
