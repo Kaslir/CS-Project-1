@@ -1,8 +1,6 @@
 <?php
-// patient_profile.php
 require 'db_connect.php';
 
-// ensure session is started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,7 +12,6 @@ if (!$patient_id) {
     die("Invalid patient ID.");
 }
 
-// fetch profile including DOB and ID_Number
 $sql = "
   SELECT 
     patient_id,
@@ -32,7 +29,6 @@ if (!$result || $result->num_rows !== 1) {
 
 $patient = $result->fetch_assoc();
 
-// compute age from date_of_birth
 $dob      = $patient['date_of_birth'];
 $dobObj   = new DateTime($dob);
 $todayObj = new DateTime();
@@ -130,6 +126,25 @@ $age      = $dobObj->diff($todayObj)->y;
         onclick="window.location.href='appointment_history.php?patient_id=<?= $patient_id ?>'">
         View Appointment History
       </button>
+    </div>
+  </div>
+  <div style="
+      background: #3498db;
+      color: #fff;
+      padding: 16px 24px;
+      text-align: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    ">
+    &copy; <?= date('Y') ?> Clinic Operations System. All rights reserved.
+    <div style="margin-top: 8px;">
+      <a href="about.php" style="color: #fff; text-decoration: none; margin: 0 8px;">About</a> |
+      <a href="contact.php" style="color: #fff; text-decoration: none; margin: 0 8px;">Contact</a> |
+      <a href="privacy.php" style="color: #fff; text-decoration: none; margin: 0 8px;">Privacy Policy</a>
     </div>
   </div>
 
