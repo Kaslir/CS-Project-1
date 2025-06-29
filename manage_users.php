@@ -124,6 +124,7 @@ if ($result === false) {
 
   <main class="main-content">
     <div class="header">
+      <a href="register_user.php" class="btn btn-primary mb-3">Register User</a>
       <h1>Manage Users</h1>
       <a href="logout.php" class="logout-btn">Logout</a>
     </div>
