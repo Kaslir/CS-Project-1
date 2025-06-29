@@ -3,7 +3,9 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require 'db_connect.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if (empty($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Doctor') {
     header('HTTP/1.1 403 Forbidden');
@@ -22,7 +24,6 @@ $sql = "
     q.queue_id,
     p.name            AS patient_name,
     a.scheduled_time,
-    q.created_at      AS queued_at,
     q.status
   FROM Queue q
   JOIN Appointment a ON q.appointment_id = a.appointment_id
@@ -37,7 +38,7 @@ $result = $conn->query($sql);
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Doctor Dashboard</title>
+  <title>Clinic – Doctor Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
@@ -132,7 +133,7 @@ $result = $conn->query($sql);
                   <?php if ($row['status'] === 'Waiting'): ?>
                     <form method="POST" action="doctor_action.php" style="display:inline">
                       <input type="hidden" name="queue_id" value="<?= $row['queue_id'] ?>">
-                      <input type="hidden" name="action"   value="start">
+                      <input type="hidden" name="action" value="start">
                       <button
                         type="submit"
                         class="small-button"
@@ -143,11 +144,11 @@ $result = $conn->query($sql);
                   <?php elseif ($row['status'] === 'In Progress'): ?>
                     <form method="POST" action="doctor_action.php" style="display:inline">
                       <input type="hidden" name="queue_id" value="<?= $row['queue_id'] ?>">
-                      <input type="hidden" name="action"   value="end">
+                      <input type="hidden" name="action" value="end">
                       <button type="submit" class="small-button">End Consultation</button>
                     </form>
                   <?php else: ?>
-                    —
+                    &mdash;
                   <?php endif; ?>
                 </td>
               </tr>
@@ -161,6 +162,26 @@ $result = $conn->query($sql);
       </table>
     </section>
   </main>
+
+  <div style="
+      background: #3498db;
+      color: #fff;
+      padding: 16px 24px;
+      text-align: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    ">
+    &copy; <?= date('Y') ?> Clinic Operations System. All rights reserved.
+    <div style="margin-top: 8px;">
+      <a href="about.php" style="color: #fff; text-decoration: none; margin: 0 8px;">About</a> |
+      <a href="contact.php" style="color: #fff; text-decoration: none; margin: 0 8px;">Contact</a> |
+      <a href="privacy.php" style="color: #fff; text-decoration: none; margin: 0 8px;">Privacy Policy</a>
+    </div>
+  </div>
 
 </body>
 </html>
