@@ -1,16 +1,12 @@
 <?php
-// login_form.php
 
-// Turn on errors for development
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Only start a session if one isn’t already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// If already logged in, snap back to your dashboard
 if (!empty($_SESSION['role_name'])) {
     switch ($_SESSION['role_name']) {
         case 'Receptionist':
@@ -26,7 +22,6 @@ if (!empty($_SESSION['role_name'])) {
             header('Location: doctor_dashboard.php');
             break;
         default:
-            // unknown role—log out
             session_unset();
             session_destroy();
             header('Location: login_form.php');
@@ -35,7 +30,6 @@ if (!empty($_SESSION['role_name'])) {
     exit;
 }
 
-// Pull any login error message out of the session
 $loginError = $_SESSION['loginError'] ?? '';
 unset($_SESSION['loginError']);
 ?>
@@ -143,7 +137,7 @@ unset($_SESSION['loginError']);
     </form>
 
     <div class="forgot">
-      Forgot Password? Contact An Administrator</a>
+      Forgot Password? Contact an Administrator.
     </div>
   </div>
 </body>
