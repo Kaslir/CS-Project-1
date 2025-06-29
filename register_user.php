@@ -1,7 +1,4 @@
 <?php
-// register_user.php
-
-// Show all errors for debugging (disable in production)
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -9,7 +6,6 @@ require 'db_connect.php';
 
 $error = '';
 
-// 1) Load roles for dropdown
 $roles = [];
 if ($res = $conn->query("SELECT role_id, role_name FROM Role")) {
     $roles = $res->fetch_all(MYSQLI_ASSOC);
@@ -18,7 +14,6 @@ if ($res = $conn->query("SELECT role_id, role_name FROM Role")) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 2) Sanitize inputs
     $name       = $conn->real_escape_string($_POST['name']);
     $email      = $conn->real_escape_string($_POST['email']);
     $phone      = $conn->real_escape_string($_POST['phone']);
@@ -27,10 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role_id    = intval($_POST['role_id']);
     $password   = $_POST['password'] ?? '';
 
-    // 3) Hash the password
     $hashedPwd = password_hash($password, PASSWORD_DEFAULT);
 
-    // 4) Insert into User table
     $sql = "
       INSERT INTO `User`
         (name, email, phone, date_of_birth, id_number, password, role_id)
@@ -41,8 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$conn->query($sql)) {
         $error = "Database error: " . $conn->error;
     } else {
-        // 5) Redirect to login form
-        header("Location: login_form.php");
+        header("Location: manage_users.php");
         exit;
     }
 }
