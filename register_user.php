@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Database error: " . $conn->error;
     } else {
         // 5) Redirect to login form
-        header("Location: login_form.php");
+        header("Location: manage_users.php");
         exit;
     }
 }
