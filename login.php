@@ -13,7 +13,7 @@ if (!empty($_SESSION['role_name'])) {
         case 'Administrator':
             header('Location: admin_dashboard.php'); break;
         case 'Triage Nurse':
-            header('Location: triage_nurse.php'); break;
+            header('Location: edit_triage.php'); break;
         case 'Doctor':
             header('Location: doctor_dashboard.php'); break;
         default:
@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 case 'Administrator':
                     header("Location: admin_dashboard.php"); break;
                 case 'Triage Nurse':
-                    header("Location: triage_nurse.php"); break;
+                    header("Location: edit_triage.php"); break;
                 case 'Doctor':
                     header("Location: doctor_dashboard.php"); break;
                 default:
