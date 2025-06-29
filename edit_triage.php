@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       VALUES($patient_id,'$level',NOW(),$nurse_id)
     ");
     reorderQueue();
-    header('Location: triage_nurse.php');
+    header('Location: edit_triage.php');
     exit;
 }
 
