@@ -33,15 +33,17 @@ $tri = $conn->query("
 $avgRow = $conn->query("
     SELECT 
       AVG(
-        TIMESTAMPDIFF(
-          MINUTE,
-          CONCAT(scheduled_date,' ',scheduled_time),
-          start_time
-        )
-      ) AS avg_wait
+  GREATEST(
+    TIMESTAMPDIFF(
+      MINUTE,
+      CONCAT(scheduled_date,' ',scheduled_time),
+      start_time
+    ),
+    0
+  )
+) AS avg_wait
     FROM Appointment
-   WHERE DATE(scheduled_date) = '$today'
-     AND start_time IS NOT NULL
+   WHERE start_time IS NOT NULL
 ")->fetch_assoc();
 $avg_wait = round($avgRow['avg_wait'] ?? 0, 1);
 
@@ -102,11 +104,30 @@ $adherence = $adRow['total']
       color: #e74c3c;
       font-weight: bold;
     }
-    .panel { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+    .panel {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
     th { background: #f0f0f0; }
-    .back-link { text-decoration: none; color: #3498db; }
+    .back-link {
+      text-decoration: none;
+      color: #3498db;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body class="dashboard-container">
@@ -122,7 +143,7 @@ $adherence = $adRow['total']
 
   <main class="main-content">
     <div class="header">
-      <h1>Reports</h1>
+      <h1>Reports & Analytics</h1>
       <a href="logout.php" class="logout-btn">Logout</a>
     </div>
 
@@ -150,11 +171,11 @@ $adherence = $adRow['total']
             </td>
           </tr>
           <tr>
-            <td>Average Wait Time (Today)</td>
+            <td>Average Wait Time</td>
             <td><?= $avg_wait ?> minutes</td>
           </tr>
           <tr>
-            <td>Appointment Adherence (All Time)</td>
+            <td>Appointment Adherence</td>
             <td><?= $adherence ?>% showed up</td>
           </tr>
         </tbody>
