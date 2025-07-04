@@ -79,9 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ">
     &copy; <?= date('Y') ?> Clinic Operations System. All rights reserved.
     <div style="margin-top: 8px;">
-      <a href="about.php" style="color: #fff; text-decoration: none; margin: 0 8px;">About</a> |
-      <a href="contact.php" style="color: #fff; text-decoration: none; margin: 0 8px;">Contact</a> |
-      <a href="privacy.php" style="color: #fff; text-decoration: none; margin: 0 8px;">Privacy Policy</a>
+     
     </div>
   </div>
 
