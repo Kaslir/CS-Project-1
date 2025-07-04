@@ -1,53 +1,23 @@
 <?php
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (!empty($_SESSION['role_name'])) {
-    switch ($_SESSION['role_name']) {
-        case 'Receptionist':
-            header('Location: receptionist_dashboard.php');
-            break;
-        case 'Administrator':
-            header('Location: admin_dashboard.php');
-            break;
-        case 'Triage Nurse':
-            header('Location: triage_nurse.php');
-            break;
-        case 'Doctor':
-            header('Location: doctor_dashboard.php');
-            break;
-        default:
-            session_unset();
-            session_destroy();
-            header('Location: login_form.php');
-            break;
-    }
-    exit;
-}
-
-$loginError = $_SESSION['loginError'] ?? '';
-unset($_SESSION['loginError']);
+// login_form.php
+session_start();
+$loginMessage = $_SESSION['loginMessage'] ?? '';
+unset($_SESSION['loginMessage']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Clinic Login</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Login</title>
   <style>
-    body.login-page {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: #ecf0f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .login-box {
       background: #fff;
@@ -57,88 +27,75 @@ unset($_SESSION['loginError']);
       width: 320px;
     }
     .login-box h2 {
-      margin-top: 0;
+      margin: 0 0 16px;
       text-align: center;
     }
-    .login-box label {
+    label {
       display: block;
-      margin-top: 12px;
-      font-size: 0.9rem;
+      margin: 12px 0 4px;
+      font-weight: 600;
     }
-    .login-box input {
+    input[type="email"],
+    input[type="password"] {
       width: 100%;
       padding: 8px;
-      margin-top: 4px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1rem;
+      box-sizing: border-box;
     }
-    .login-box button {
+    .checkbox-container {
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+    }
+    .checkbox-container input {
+      margin-right: 8px;
+    }
+    .message {
+      color: #e74c3c;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    button {
       width: 100%;
       padding: 10px;
-      margin-top: 20px;
+      background: #3498db;
+      color: #fff;
       border: none;
       border-radius: 4px;
-      background: #007bff;
-      color: #fff;
       font-size: 1rem;
       cursor: pointer;
     }
-    .login-box button:hover {
-      background: #0056b3;
-    }
-    .login-box .error {
-      color: #e74c3c;
-      text-align: center;
-      margin-top: 12px;
-    }
-    .login-box .forgot {
-      text-align: center;
-      margin-top: 12px;
-      font-size: 0.9rem;
-    }
-    .login-box .forgot a {
-      color: #007bff;
-      text-decoration: none;
-    }
-    .login-box .forgot a:hover {
-      text-decoration: underline;
+    button:hover {
+      background: #2980b9;
     }
   </style>
 </head>
-<body class="login-page">
+<body>
   <div class="login-box">
     <h2>Login</h2>
-
-    <?php if ($loginError): ?>
-      <div class="error"><?= htmlspecialchars($loginError) ?></div>
+    <?php if ($loginMessage): ?>
+      <div class="message"><?= htmlspecialchars($loginMessage) ?></div>
     <?php endif; ?>
-
     <form method="POST" action="login.php">
-      <label for="email">Email:</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="Enter your email"
-        required
-      />
-
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="Enter your password"
-        required
-      />
-
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autofocus>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+      <div class="checkbox-container">
+        <input type="checkbox" id="show_password">
+        <label for="show_password">Show Password</label>
+      </div>
       <button type="submit">Login</button>
     </form>
-
-    <div class="forgot">
-      Forgot Password? Contact an Administrator.
-    </div>
   </div>
+
+  <script>
+    const pwdInput = document.getElementById('password');
+    const toggle = document.getElementById('show_password');
+    toggle.addEventListener('change', () => {
+      pwdInput.type = toggle.checked ? 'text' : 'password';
+    });
+  </script>
 </body>
 </html>
