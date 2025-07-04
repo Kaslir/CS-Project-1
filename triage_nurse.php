@@ -1,6 +1,5 @@
 <?php
-// triage_nurse.php
-// (Add your session/login checks here)
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,13 +9,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Full-width header identical to receptionist/doctor -->
   <div class="header">
     <h1>Clinic</h1>
     <a href="logout.php" class="logout-btn">Logout</a>
   </div>
 
-  <!-- Live Queue Table -->
   <div class="table-container">
     <div class="table-header">
       <h2>Live Queue</h2>
@@ -61,9 +58,24 @@
             </a>
           </td>
         </tr>
-        <!-- …more rows… -->
       </tbody>
     </table>
+  </div>
+      <div style="
+      background: #3498db;
+      color: #fff;
+      padding: 16px 24px;
+      text-align: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    ">
+    &copy; <?= date('Y') ?> Clinic Operations System. All rights reserved.
+    <div style="margin-top: 8px;">
+    </div>
   </div>
 </body>
 </html>
