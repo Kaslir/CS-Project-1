@@ -144,7 +144,6 @@ $isPaused = (bool)$pausedRow['paused'];
     <div class="header-controls">
       <form method="POST">
         <?php if (!$isPaused): ?>
-          <button name="pause_queue" class="pause">Pause Queue</button>
         <?php else: ?>
           <button name="resume_queue" class="resume">Resume Queue</button>
         <?php endif; ?>

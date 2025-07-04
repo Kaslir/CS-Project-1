@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $host     = "localhost";
 $user     = "root";
-$password = "12345678"; 
+$password = "4321"; 
 $database = "clinic_system";
 
 $conn = new mysqli($host, $user, $password, $database);
