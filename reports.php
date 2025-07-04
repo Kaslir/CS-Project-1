@@ -33,15 +33,15 @@ $tri = $conn->query("
 $avgRow = $conn->query("
     SELECT 
       AVG(
-  GREATEST(
-    TIMESTAMPDIFF(
-      MINUTE,
-      CONCAT(scheduled_date,' ',scheduled_time),
-      start_time
-    ),
-    0
-  )
-) AS avg_wait
+        GREATEST(
+          TIMESTAMPDIFF(
+            MINUTE,
+            CONCAT(scheduled_date,' ',scheduled_time),
+            start_time
+          ),
+          0
+        )
+      ) AS avg_wait
     FROM Appointment
    WHERE start_time IS NOT NULL
 ")->fetch_assoc();
@@ -111,6 +111,7 @@ $adherence = $adRow['total']
       margin-top: 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
+    .panel h2 { margin-top: 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -122,11 +123,18 @@ $adherence = $adRow['total']
       text-align: left;
     }
     th { background: #f0f0f0; }
-    .back-link {
-      text-decoration: none;
-      color: #3498db;
-      display: inline-block;
-      margin-bottom: 12px;
+    .btn {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .btn:hover {
+      background: #2980b9;
     }
   </style>
 </head>
@@ -180,7 +188,12 @@ $adherence = $adRow['total']
           </tr>
         </tbody>
       </table>
+
+      <button class="btn" onclick="window.location.href='missed_appointments.php'">
+        View Missed Appointments
+      </button>
     </div>
+
   </main>
 </body>
 </html>
