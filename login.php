@@ -1,11 +1,12 @@
 <?php
+// login.php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
+require 'db_connect.php';
 
+// If already logged in, redirect based on role
 if (!empty($_SESSION['role_name'])) {
     switch ($_SESSION['role_name']) {
         case 'Receptionist':
@@ -24,21 +25,16 @@ if (!empty($_SESSION['role_name'])) {
     exit;
 }
 
-require 'db_connect.php';
-
 $loginError = '';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = $conn->real_escape_string($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
     $sql = "
-      SELECT u.user_id,
-             u.name,
-             u.password,
-             r.role_name
-        FROM User u
-   LEFT JOIN Role   r ON u.role_id = r.role_id
+      SELECT u.user_id, u.name, u.password, r.role_name
+        FROM `User` u
+   LEFT JOIN Role      r ON u.role_id = r.role_id
        WHERE u.email = '$email'
        LIMIT 1
     ";
@@ -79,17 +75,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Clinic Login</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Login</title>
   <style>
-    body.login-page {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background: #ecf0f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .login-box {
       background: #fff;
@@ -99,72 +94,78 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       width: 320px;
     }
     .login-box h2 {
-      margin-top: 0;
+      margin: 0 0 16px;
       text-align: center;
     }
-    .login-box label {
+    label {
       display: block;
-      margin-top: 12px;
-      font-size: 0.9rem;
+      margin: 12px 0 4px;
+      font-weight: 600;
     }
-    .login-box input {
+    input[type="email"],
+    input[type="password"] {
       width: 100%;
       padding: 8px;
-      margin-top: 4px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1rem;
+      box-sizing: border-box;
     }
-    .login-box button {
+    .checkbox-container {
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+    }
+    .checkbox-container input {
+      margin-right: 8px;
+    }
+    .message {
+      color: #e74c3c;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    button {
       width: 100%;
       padding: 10px;
-      margin-top: 20px;
+      background: #3498db;
+      color: #fff;
       border: none;
       border-radius: 4px;
-      background: #007bff;
-      color: #fff;
       font-size: 1rem;
       cursor: pointer;
     }
-    .login-box button:hover {
-      background: #0056b3;
-    }
-    .login-box .error {
-      color: #e74c3c;
-      text-align: center;
-      margin-top: 12px;
+    button:hover {
+      background: #2980b9;
     }
   </style>
 </head>
-<body class="login-page">
+<body>
   <div class="login-box">
     <h2>Login</h2>
-
     <?php if ($loginError): ?>
-      <div class="error"><?= htmlspecialchars($loginError) ?></div>
+      <div class="message"><?= htmlspecialchars($loginError) ?></div>
     <?php endif; ?>
-
-    <form method="POST" action="login.php">
-      <label for="email">Email:</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        placeholder="Enter your email"
-        required
-      />
-
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="Enter your password"
-        required
-      />
-
+    <form method="POST" action="">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autofocus>
+      
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="show_password">
+        <label for="show_password">Show Password</label>
+      </div>
+      
       <button type="submit">Login</button>
     </form>
   </div>
+
+  <script>
+    const pwdInput = document.getElementById('password');
+    const toggle   = document.getElementById('show_password');
+    toggle.addEventListener('change', () => {
+      pwdInput.type = toggle.checked ? 'text' : 'password';
+    });
+  </script>
 </body>
 </html>

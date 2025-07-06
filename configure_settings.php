@@ -161,14 +161,7 @@ while ($row = $holRes->fetch_assoc()) {
     <section class="panel">
       <h2>Appointment Settings</h2>
       <form method="POST">
-        <label for="buffer_duration">Buffer Duration (min):</label>
-        <select id="buffer_duration" name="buffer_duration">
-          <?php foreach ([5,10,15] as $b): ?>
-            <option value="<?= $b ?>" <?= $settings['buffer_duration']==$b?'selected':'' ?>>
-              <?= $b ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+
 
         <label for="max_daily">Max Daily Appointments:</label>
         <input type="number" id="max_daily" name="max_daily"

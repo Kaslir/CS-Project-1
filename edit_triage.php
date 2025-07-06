@@ -30,6 +30,7 @@ $res = $conn->query("
     q.position,
     p.patient_id,
     p.name,
+    TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE()) AS age,
     a.scheduled_time,
     COALESCE(
       (SELECT triage_level 
@@ -63,13 +64,14 @@ $res = $conn->query("
 
   <div class="table-container">
     <div class="table-header">
-      <h2>Live Queue (Triage)</h2>
+      <h2>Live Queue</h2>
     </div>
     <table>
       <thead>
         <tr>
           <th>Position</th>
           <th>Patient Name</th>
+          <th>Age</th>
           <th>Scheduled Time</th>
           <th>Current Priority</th>
           <th>Set New Level</th>
@@ -81,6 +83,7 @@ $res = $conn->query("
             <tr>
               <td><?= $row['position'] ?></td>
               <td><?= htmlspecialchars($row['name']) ?></td>
+              <td><?= htmlspecialchars($row['age']) ?></td>
               <td><?= date('h:i A', strtotime($row['scheduled_time'])) ?></td>
               <td><?= htmlspecialchars($row['current_level']) ?></td>
               <td>
@@ -99,28 +102,26 @@ $res = $conn->query("
           <?php endwhile; ?>
         <?php else: ?>
           <tr>
-            <td colspan="5" style="text-align:center;">No patients waiting for triage.</td>
+            <td colspan="6" style="text-align:center;">No patients waiting for triage.</td>
           </tr>
         <?php endif; ?>
       </tbody>
     </table>
   </div>
-    <div style="
-      background: #3498db;
-      color: #fff;
-      padding: 16px 24px;
-      text-align: center;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-      z-index: 1000;
-    ">
-    &copy; <?= date('Y') ?> Clinic Operations System. All rights reserved.
-    <div style="margin-top: 8px;">
-    </div>
-  </div>
 
+  <div style="
+    background: #3498db;
+    color: #fff;
+    padding: 16px 24px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+  ">
+    &copy; <?= date('Y') ?> Clinic Operations System. All rights reserved.
+  </div>
 </body>
 </html>

@@ -5,21 +5,22 @@ error_reporting(E_ALL);
 require 'db_connect.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-if (empty($_SESSION['role_name']) || !in_array($_SESSION['role_name'], ['Administrator','Clinic Operations Supervisor'], true)) {
+if (empty($_SESSION['role_name']) 
+    || !in_array($_SESSION['role_name'], ['Administrator','Clinic Operations Supervisor'], true)) {
     header('HTTP/1.1 403 Forbidden');
     exit('Access denied');
 }
-
 $sql = "
   SELECT
     a.appointment_id,
     p.name            AS patient_name,
     a.scheduled_date,
     a.scheduled_time,
-    a.category
+    a.category,
+    a.status
   FROM Appointment a
   JOIN Patient     p ON a.patient_id = p.patient_id
-  WHERE a.status = 'Missed'
+  WHERE a.status IN ('Missed','Cancelled')
   ORDER BY a.scheduled_date DESC, a.scheduled_time DESC
 ";
 $result = $conn->query($sql);
@@ -28,7 +29,7 @@ $result = $conn->query($sql);
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Missed Appointments</title>
+  <title>Missed & Cancelled Appointments</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .dashboard-container { display: flex; min-height: 100vh; }
@@ -89,28 +90,30 @@ $result = $conn->query($sql);
       text-align: left;
     }
     th {
-      background: #f0f0f0;
+      background: #3498db;   
+      color: #fff;           
     }
   </style>
 </head>
 <body class="dashboard-container">
+
   <aside class="sidebar">
     <div class="logo">Clinic</div>
     <ul class="nav">
       <li><a href="admin_dashboard.php">Dashboard</a></li>
       <li><a href="manage_users.php">Manage Users</a></li>
       <li class="active"><a href="reports.php">Reports</a></li>
-      <li><a href="configure_settings.php">Configure Settings</a></li>
+      <li><a href="configure_settings.php">Settings</a></li>
     </ul>
   </aside>
 
   <main class="main-content">
     <div class="header">
-      <h1>Missed Appointments</h1>
+      <h1>Missed &amp; Cancelled Appointments</h1>
       <a href="logout.php" class="logout-btn">Logout</a>
     </div>
 
-    <div class="panel">
+    <section class="panel">
       <table>
         <thead>
           <tr>
@@ -119,6 +122,7 @@ $result = $conn->query($sql);
             <th>Scheduled Date</th>
             <th>Scheduled Time</th>
             <th>Category</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -130,16 +134,17 @@ $result = $conn->query($sql);
                 <td><?= htmlspecialchars($row['scheduled_date']) ?></td>
                 <td><?= date('h:i A', strtotime($row['scheduled_time'])) ?></td>
                 <td><?= htmlspecialchars($row['category']) ?></td>
+                <td><?= htmlspecialchars($row['status']) ?></td>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
             <tr>
-              <td colspan="5" style="text-align:center;">No missed appointments found.</td>
+              <td colspan="6" style="text-align:center;">No missed or cancelled appointments found.</td>
             </tr>
           <?php endif; ?>
         </tbody>
       </table>
-    </div>
+    </section>
   </main>
 </body>
 </html>

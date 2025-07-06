@@ -123,6 +123,10 @@ $adherence = $adRow['total']
       text-align: left;
     }
     th { background: #f0f0f0; }
+        th {
+      background: #3498db;   
+      color: #fff;           
+    }
     .btn {
       margin-top: 16px;
       padding: 10px 20px;
