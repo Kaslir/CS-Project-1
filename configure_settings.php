@@ -195,38 +195,6 @@ while ($row = $holRes->fetch_assoc()) {
       </form>
     </section>
 
-    <section class="panel">
-      <h2>Holiday &amp; Black-Out Dates</h2>
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Description</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-          <?php if ($holidays): ?>
-            <?php foreach ($holidays as $h): ?>
-              <tr>
-                <td><?= htmlspecialchars($h['holiday_date']) ?></td>
-                <td><?= htmlspecialchars($h['description']) ?></td>
-                <td>
-                  <form method="POST" style="display:inline">
-                    <input type="hidden" name="del_date" value="<?= $h['holiday_date'] ?>">
-                    <button type="submit" name="delete_holiday" class="del-btn">Delete</button>
-                  </form>
-                </td>
-              </tr>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <tr><td colspan="3" style="text-align:center;">No holidays defined.</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-      <form method="POST" class="holiday-form">
-        <label for="holiday_date">Add Holiday:</label>
-        <input type="date" id="holiday_date" name="holiday_date" required>
-        <input type="text" name="holiday_desc" placeholder="Description" required>
-        <button type="submit" name="add_holiday">Add</button>
-      </form>
-    </section>
 
   </main>
 </body>
